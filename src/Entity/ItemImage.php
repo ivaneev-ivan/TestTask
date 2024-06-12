@@ -3,19 +3,22 @@
 namespace App\Entity;
 
 use App\Repository\ItemImageRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+
 
 #[ORM\Entity(repositoryClass: ItemImageRepository::class)]
 class ItemImage
 {
+    const SERVER_PATH_TO_IMAGE_FOLDER = './public/';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::BINARY)]
-    private $img;
+    #[ORM\Column(type: 'binary')]
+    private UploadedFile $file;
 
     #[ORM\ManyToOne(inversedBy: 'item')]
     #[ORM\JoinColumn(nullable: false)]
@@ -26,41 +29,58 @@ class ItemImage
         return $this->id;
     }
 
-    public function getImg()
+    public function setFile(?UploadedFile $file = null): void
     {
-        return $this->img;
+        $this->file = $file;
     }
 
-    public function setImg($img): static
+    public function getFile(): ?UploadedFile
     {
-        $this->img = $img;
-
-        return $this;
+        return $this->file;
     }
 
-    public function getText(): ?string
+    /**
+     * Manages the copying of the file to the relevant place on the server
+     */
+    public function upload(): void
     {
-        return $this->text;
+        // the file property can be empty if the field is not required
+        if (null === $this->getFile()) {
+            return;
+        }
+
+        // we use the original file name here but you should
+        // sanitize it at least to avoid any security issues
+
+        // move takes the target directory and target filename as params
+        $this->getFile()->move(
+            self::SERVER_PATH_TO_IMAGE_FOLDER,
+            $this->getFile()->getClientOriginalName()
+        );
+
+        // set the path property to the filename where you've saved the file
+        $this->filename = $this->getFile()->getClientOriginalName();
+
+        // clean up the file property as you won't need it anymore
+        $this->setFile(null);
     }
 
-    public function setText(string $text): static
+    /**
+     * Lifecycle callback to upload the file to the server.
+     */
+    public function lifecycleFileUpload(): void
     {
-        $this->text = $text;
-
-        return $this;
+        $this->upload();
     }
 
-    public function getEmail(): ?string
+    /**
+     * Updates the hash value to force the preUpdate and postUpdate events to fire.
+     */
+    public function refreshUpdated(): void
     {
-        return $this->email;
+        $this->setUpdated(new \DateTime());
     }
 
-    public function setEmail(string $email): static
-    {
-        $this->email = $email;
-
-        return $this;
-    }
 
     public function getItem(): ?Item
     {

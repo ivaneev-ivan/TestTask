@@ -15,12 +15,10 @@ class ColorFixtures extends Fixture
         $green = (new Color())->setName("Зеленый");
         $white = (new Color())->setName("Белый");
 
-        $manager -> persist($red);
-        $manager -> persist($blue);
-        $manager -> persist($green);
-        $manager -> persist($white);
-        // $product = new Product();
-        // $manager->persist($product);
+        $manager->persist($red);
+        $manager->persist($blue);
+        $manager->persist($green);
+        $manager->persist($white);
 
         $manager->flush();
     }
