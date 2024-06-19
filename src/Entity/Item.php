@@ -27,12 +27,6 @@ class Item
     #[ORM\JoinColumn(nullable: false)]
     private ?Color $color = null;
 
-    /**
-     * @var Collection<int, ItemImage>
-     */
-    #[ORM\OneToMany(targetEntity: ItemImage::class, mappedBy: 'item')]
-    private Collection $images;
-
     #[ORM\Column(length: 255)]
     #[Assert\Email]
     private ?string $email = null;
@@ -41,11 +35,17 @@ class Item
     #[ORM\JoinColumn(nullable: false)]
     private ?Shape $shape = null;
 
+    /**
+     * @var Collection<int, ItemImage>
+     */
+    #[ORM\OneToMany(targetEntity: ItemImage::class, mappedBy: 'item')]
+    private Collection $images;
+
     public function __construct()
     {
-        $this->item = new ArrayCollection();
+        $this->images = new ArrayCollection();
     }
-
+    
     public function getId(): ?int
     {
         return $this->id;
@@ -100,28 +100,34 @@ class Item
         return $this;
     }
 
+    /**
+     * @return Collection<int, ItemImage>
+     */
     public function getImages(): Collection
     {
         return $this->images;
     }
 
-    public function addImage(ItemImage $image): self
+    public function addImage(ItemImage $image): static
     {
         if (!$this->images->contains($image)) {
-            $this->images[] = $image;
+            $this->images->add($image);
             $image->setItem($this);
         }
+
         return $this;
     }
 
-    public function removeImage(ItemImage $itemImage): self
+    public function removeImage(ItemImage $image): static
     {
-        if ($this->images->removeElement($itemImage)) {
+        if ($this->images->removeElement($image)) {
             // set the owning side to null (unless already changed)
-            if ($itemImage->getItem() === $this) {
-                $itemImage->setItem(null);
+            if ($image->getItem() === $this) {
+                $image->setItem(null);
             }
         }
+
         return $this;
     }
+    
 }

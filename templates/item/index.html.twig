@@ -10,8 +10,7 @@
             <tr>
                 <th>Id</th>
                 <th>Text</th>
-                <th>Color</th>
-                <th>Shape</th>
+                <th>Email</th>
                 <th>actions</th>
             </tr>
         </thead>
@@ -20,8 +19,7 @@
             <tr>
                 <td>{{ item.id }}</td>
                 <td>{{ item.text }}</td>
-                <td>{{ item.color.name }}</td>
-                <td>{{ item.shape.name }}</td>
+                <td>{{ item.email }}</td>
                 <td>
                     <a href="{{ path('app_item_show', {'id': item.id}) }}">show</a>
                     <a href="{{ path('app_item_edit', {'id': item.id}) }}">edit</a>
@@ -29,7 +27,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="3">no records found</td>
+                <td colspan="4">no records found</td>
             </tr>
         {% endfor %}
         </tbody>

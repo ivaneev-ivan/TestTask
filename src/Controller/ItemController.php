@@ -3,10 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Item;
+use App\Entity\ItemImage;
 use App\Form\ItemType;
 use App\Repository\ItemRepository;
+use App\Service\FileUploader;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,18 +25,28 @@ class ItemController extends AbstractController
         ]);
     }
 
-    #[Route('/', name: 'app_item_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('', name: 'app_item_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager, FileUploader $fileUploader): Response
     {
         $item = new Item();
         $form = $this->createForm(ItemType::class, $item);
         $form->handleRequest($request);
-
+        $files = $form->get('images')->getData();
+        if ($files != null && count($files) > 4) {
+            $form->get('images')->addError(new FormError('Нельзя загрузить больше 4 изображений'));
+        }
         if ($form->isSubmitted() && $form->isValid()) {
+            foreach ($files as $file) {
+                $image = new ItemImage();
+                $fileName = $fileUploader->upload($file);
+                $image->setImage($fileName);
+                $item->addImage($image);
+                $entityManager->persist($image);
+            }
             $entityManager->persist($item);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_item_new', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_item_index', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('item/new.html.twig', [
@@ -71,7 +84,7 @@ class ItemController extends AbstractController
     #[Route('/{id}', name: 'app_item_delete', methods: ['POST'])]
     public function delete(Request $request, Item $item, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$item->getId(), $request->getPayload()->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $item->getId(), $request->getPayload()->get('_token'))) {
             $entityManager->remove($item);
             $entityManager->flush();
         }
