@@ -29,12 +29,7 @@ class ItemType extends AbstractType
                 'required' => false,
                 'mapped' => false,
                 'multiple' => true,
-                'attr' => [
-                    'class' => 'inputfile',
-                    'data-for' => 'file-1'
-                ]
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

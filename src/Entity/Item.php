@@ -126,7 +126,6 @@ class Item
                 $image->setItem(null);
             }
         }
-
         return $this;
     }
     
